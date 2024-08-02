@@ -1,0 +1,81 @@
+POST http://localhost:8080/api/v1/add-user
+Content-Type: application/json
+
+{
+  "id": "123",
+  "name": "john_doe",
+  "email": "john.doe@example.com"
+}
+
+### Request 2: Get User Details
+### Get User by ID
+GET http://localhost:8080/api/v1/get-user/123
+
+###
+
+# Test fetching all items
+GET http://localhost:8080/api/v1/items
+Accept: application/json
+
+###
+
+# Test fetching a single item by ID
+GET http://localhost:8080/api/v1/items/1
+Accept: application/json
+
+###
+
+# Test adding a new item
+POST http://localhost:8080/api/v1/items
+Content-Type: application/json
+
+{
+  "id": "2",
+  "description": "Sample Item Description #2",
+  "price": "19.99"
+}
+
+###
+
+# Test deleting an item by ID
+DELETE http://localhost:8080/api/v1/items/2
+
+# Test: Get Cart by User ID
+GET http://localhost:8080/api/v1/cart/{userId}
+Accept: application/json
+
+### 
+
+# Test: Update Cart
+POST http://localhost:8080/api/v1/cart/update
+Content-Type: application/json
+
+{
+  "userId": "sampleUserId",
+  "items": [
+    {
+      "itemId": "item1",
+      "name": "Item 1",
+      "quantity": 2
+    },
+    {
+      "itemId": "item2",
+      "name": "Item 2",
+      "quantity": 3
+    }
+  ]
+}
+
+
+### 
+
+# Test: Generate Share Code
+POST http://localhost:8080/api/v1/cart/share/{cartId}
+Accept: application/json
+
+### 
+
+# Test: Get Cart by Share Code
+GET http://localhost:8080/api/v1/cart/shared/{shareCode}
+Accept: application/json
+

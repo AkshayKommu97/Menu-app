@@ -1,0 +1,28 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "MongoDBTest",
+      "request": "launch",
+      "mainClass": "com.app.menu.config.MongoDBTest",
+      "projectName": "menu"
+    },
+    {
+      "type": "java",
+      "name": "MenuApplication",
+      "request": "launch",
+      "mainClass": "com.app.menu.MenuApplication"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-MenuApplication<menu>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.app.menu.MenuApplication",
+      "projectName": "menu",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=50713 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=menu"
+    }
+  ]
+}

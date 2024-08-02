@@ -1,0 +1,42 @@
+/* App.css */
+
+/* Import Bootstrap CSS before other styles */
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+/* General App styles */
+.App {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Styles for user card */
+.user-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px auto;
+  max-width: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles for the carousel items */
+.carousel-item {
+  text-align: center;
+  max-height: 400px; /* Adjust as needed */
+}
+
+/* Override Bootstrap card styles if necessary */
+.card {
+  margin: 0 auto;
+}
+
+/* Custom styles for buttons within cards */
+.card-button {
+  margin-top: 10px;
+}
+
+/* Style for error messages */
+.text-danger {
+  color: #dc3545;
+}
