@@ -1,53 +1,123 @@
-// src/Cart.jsx
 import { useState, useEffect } from "react";
-import { subscribeToCart, sendCartAction } from "./websocketService";
+import SockJS from "sockjs-client";
+import { over } from "stompjs";
+import axios from "axios";
 
-// eslint-disable-next-line react/prop-types
-const Cart = ({ room }) => {
-  const [cart, setCart] = useState({});
+let stompClient = null;
+
+const Cart = () => {
+  const [cartItems, setCartItems] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    subscribeToCart(room, (updatedCart) => {
-      setCart((prevCart) => {
-        const newCart = { ...prevCart };
-        newCart[updatedCart.itemId] = updatedCart;
-        return newCart;
-      });
-    });
+    // Fetch initial cart items from the database
+    fetchCartItems();
+
+    // Connect to WebSocket
+    connectWebSocket();
 
     return () => {
-      // Cleanup (if necessary)
+      if (stompClient !== null && isConnected) {
+        stompClient.disconnect(() => {
+          console.log("Disconnected from WebSocket");
+        });
+      }
     };
-  }, [room]);
+  }, []);
 
-  const addItem = (itemId, name) => {
-    const quantity = cart[itemId] ? cart[itemId].quantity + 1 : 1;
-    sendCartAction(room, itemId, name, quantity);
+  const fetchCartItems = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/v1/cart");
+      setCartItems(response.data);
+    } catch (error) {
+      console.error("Error fetching cart items:", error);
+    }
   };
 
-  const removeItem = (itemId) => {
-    const quantity = cart[itemId] ? cart[itemId].quantity - 1 : 0;
-    if (quantity > 0) {
-      sendCartAction(room, itemId, cart[itemId].name, quantity);
+  const connectWebSocket = () => {
+    const socket = new SockJS("http://localhost:8080/ws");
+    stompClient = over(socket);
+    stompClient.connect({}, onConnected, onError);
+  };
+
+  const onConnected = () => {
+    console.log("Connected to WebSocket");
+    setIsConnected(true);
+
+    setTimeout(() => {
+      stompClient.subscribe("/topic/cart", onMessageReceived);
+    }, 100);
+  };
+
+  const onError = (error) => {
+    console.error("Error connecting to WebSocket:", error);
+  };
+
+  const onMessageReceived = (payload) => {
+    const item = JSON.parse(payload.body);
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find(
+        (cartItem) => cartItem.id === item.id
+      );
+      if (existingItem) {
+        return prevItems.map((cartItem) =>
+          cartItem.id === item.id ? item : cartItem
+        );
+      } else {
+        return [...prevItems, item];
+      }
+    });
+  };
+
+  const updateCartItem = (item) => {
+    if (isConnected) {
+      stompClient.send("/app/cart", {}, JSON.stringify(item));
     } else {
-      // Optional: handle removing the item from the cart entirely
+      console.error("WebSocket connection is not established yet");
+    }
+  };
+
+  const handleAddQuantity = (item) => {
+    item.quantity += 1;
+    updateCartItem(item);
+  };
+
+  const handleRemoveQuantity = (item) => {
+    if (item.quantity > 0) {
+      item.quantity -= 1;
+      updateCartItem(item);
     }
   };
 
   return (
     <div>
-      <h2>Cart</h2>
-      <ul>
-        {Object.values(cart).map((item) => (
-          <li key={item.itemId}>
-            {item.name} (Quantity: {item.quantity})
-            <button onClick={() => addItem(item.itemId, item.name)}>+</button>
-            <button onClick={() => removeItem(item.itemId)}>-</button>
-          </li>
-        ))}
-      </ul>
-      <button onClick={() => addItem("1", "Item 1")}>Add Item 1</button>
-      <button onClick={() => addItem("2", "Item 2")}>Add Item 2</button>
+      <h1>Shopping Cart</h1>
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
+        {cartItems.length > 0 ? (
+          cartItems.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                border: "1px solid #ccc",
+                padding: "16px",
+                margin: "8px",
+                width: "200px",
+              }}
+            >
+              <h3>{item.name}</h3>
+              <p>Quantity: {item.quantity}</p>
+              <button onClick={() => handleAddQuantity(item)}>
+                Add Quantity
+              </button>
+              <button onClick={() => handleRemoveQuantity(item)}>
+                Remove Quantity
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>No items in the cart</p>
+        )}
+      </div>
     </div>
   );
 };

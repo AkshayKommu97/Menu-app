@@ -17,7 +17,7 @@ public class CartController {
     @Autowired
     private CartItemRepository cartItemRepository;
 
-    @MessageMapping("/cart")
+    @MessageMapping("/cartew")
     @SendTo("/topic/cart/{room}")
     public CartItem handleCartAction(String payload) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();

@@ -1,6 +1,8 @@
 package com.app.menu.controller;
 
+import com.app.menu.model.CartItem;
 import com.app.menu.model.Item;
+import com.app.menu.repositories.CartItemRepository;
 import com.app.menu.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,10 +18,17 @@ public class itemController {
 
     @Autowired
     private ItemService itemService;
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
     @GetMapping("/items")
     public ResponseEntity<List<Item>> getItems() {
         return ResponseEntity.ok(itemService.getAllItems());
+    }
+
+    @GetMapping("/cart")
+    public ResponseEntity<List<CartItem>> getCartItems() {
+        return ResponseEntity.ok(cartItemRepository.findAll());
     }
 
     @GetMapping("/items/{id}")
@@ -34,6 +43,9 @@ public class itemController {
 
     @PostMapping("/items")
     public ResponseEntity<Item> addItem(@RequestBody Item item) {
+        CartItem cartItem = new CartItem();
+        cartItem.setName(item.getDescription());
+        cartItemRepository.save(cartItem);
         return ResponseEntity.ok(itemService.addItem(item));
     }
 
