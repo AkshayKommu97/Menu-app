@@ -2,32 +2,48 @@ package com.app.menu.controller;
 
 import com.app.menu.model.CartItem;
 import com.app.menu.service.CartService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+
+import java.util.List;
 
 @Controller
 public class CartWebSocketController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    // Method to handle adding or updating a cart item
-    @MessageMapping("/cart")
-    @SendTo("/topic/cart")
-    public CartItem handleCartAction(CartItem cartItem) {
-        // Save or update the cart item
-        CartItem updatedCartItem = cartService.saveOrUpdateCartItem(cartItem);
-        return updatedCartItem; // Broadcast to all subscribers of /topic/cart
+    public CartWebSocketController(CartService cartService, SimpMessagingTemplate messagingTemplate) {
+        this.cartService = cartService;
+        this.messagingTemplate = messagingTemplate;
     }
 
-    // Method to handle removing a cart item
-    @MessageMapping("/cart/remove")
+    @MessageMapping("/cart/fetch")
     @SendTo("/topic/cart")
-    public CartItem handleCartRemoval(CartItem cartItem) {
-        // Remove the cart item from the database
-        cartService.deleteCartItem(cartItem.getId());
-        return cartItem; // Broadcast the removed item to all subscribers of /topic/cart
+    public List<CartItem> fetchCartItem() {
+        return cartService.fetchCartItem();
+    }
+
+    @MessageMapping("/cart/add")
+    public void addCartItem(CartItem cartItem) {
+        CartItem updatedItem = cartService.saveOrUpdateCartItem(cartItem);
+        sendCartItemToWebSocket(updatedItem);
+    }
+
+    @MessageMapping("/cart/remove")
+    public void removeCartItem(CartItem cartItem) {
+        CartItem removedItem = cartService.removeCartItem(cartItem);
+        if (removedItem == null) {
+            // If the item was removed, notify the clients to delete the item
+            messagingTemplate.convertAndSend("/topic/cart/remove", cartItem.getId());
+        } else {
+            sendCartItemToWebSocket(removedItem);
+        }
+    }
+
+    private void sendCartItemToWebSocket(CartItem cartItem) {
+        messagingTemplate.convertAndSend("/topic/cart", cartItem);
     }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, Button, Container, Row, Col } from "react-bootstrap";
+import { v4 as uuidv4 } from "uuid";
 
 // Import Bootstrap CSS
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -55,6 +56,20 @@ const ItemList = () => {
     }
   };
 
+  const handleAddToCart = async (item) => {
+    try {
+      const cartItem = {
+        description: item.description,
+        itemId: uuidv4(), // Generate a random UUID for itemId
+        quantity: 1, // Initial quantity set to 1
+      };
+      await axios.post(`${BASE_URL}/add-cart`, cartItem);
+      alert("Item added to cart!");
+    } catch (err) {
+      setError("Failed to add item to cart");
+    }
+  };
+
   return (
     <Container style={{ padding: "20px" }}>
       <h2 className="text-center">Item List</h2>
@@ -104,8 +119,12 @@ const ItemList = () => {
                 <Button
                   variant="primary"
                   onClick={() => handleSelectItem(item.id)}
+                  style={{ marginRight: "10px" }}
                 >
                   View
+                </Button>
+                <Button variant="success" onClick={() => handleAddToCart(item)}>
+                  Add to Cart
                 </Button>
               </Card.Body>
             </Card>

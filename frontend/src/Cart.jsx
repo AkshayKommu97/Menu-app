@@ -1,19 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SockJS from "sockjs-client";
 import { over } from "stompjs";
 import axios from "axios";
 
 let stompClient = null;
+const BASE_URL = "http://localhost:8080/api/v1";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Fetch initial cart items from the database
-    fetchCartItems();
-
-    // Connect to WebSocket
     connectWebSocket();
 
     return () => {
@@ -23,16 +21,8 @@ const Cart = () => {
         });
       }
     };
-  }, []);
-
-  const fetchCartItems = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/v1/cart");
-      setCartItems(response.data);
-    } catch (error) {
-      console.error("Error fetching cart items:", error);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   const connectWebSocket = () => {
     const socket = new SockJS("http://localhost:8080/ws");
@@ -44,54 +34,104 @@ const Cart = () => {
     console.log("Connected to WebSocket");
     setIsConnected(true);
 
+    stompClient.subscribe("/topic/cart", onMessageReceived);
+
     setTimeout(() => {
-      stompClient.subscribe("/topic/cart", onMessageReceived);
+      if (isConnected) {
+        stompClient.send("/app/cart/fetch", {}, JSON.stringify({}));
+        stompClient.subscribe("/topic/cart/remove", onRemoveMessageReceived);
+      }
     }, 100);
   };
 
   const onError = (error) => {
     console.error("Error connecting to WebSocket:", error);
+    setError("Error connecting to WebSocket");
   };
 
   const onMessageReceived = (payload) => {
-    const item = JSON.parse(payload.body);
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (cartItem) => cartItem.id === item.id
-      );
-      if (existingItem) {
-        return prevItems.map((cartItem) =>
-          cartItem.id === item.id ? item : cartItem
-        );
-      } else {
-        return [...prevItems, item];
-      }
-    });
-  };
+    const messageData = JSON.parse(payload.body);
+    console.log("Message received:", messageData);
 
-  const updateCartItem = (item) => {
-    if (isConnected) {
-      stompClient.send("/app/cart", {}, JSON.stringify(item));
+    if (Array.isArray(messageData)) {
+      setCartItems(messageData);
+    } else if (messageData.removed) {
+      setCartItems((prevItems) =>
+        prevItems.filter((item) => item.id !== messageData.id)
+      );
     } else {
-      console.error("WebSocket connection is not established yet");
+      setCartItems((prevItems) => {
+        const itemIndex = prevItems.findIndex(
+          (item) => item.id === messageData.id
+        );
+
+        if (itemIndex !== -1) {
+          const updatedItems = [...prevItems];
+          updatedItems[itemIndex] = messageData;
+          return updatedItems;
+        } else {
+          return [...prevItems, messageData];
+        }
+      });
     }
   };
 
-  const handleAddQuantity = (item) => {
-    item.quantity += 1;
-    updateCartItem(item);
+  const onRemoveMessageReceived = (payload) => {
+    const removedItemId = JSON.parse(payload.body);
+    console.log("Item removed:", removedItemId);
+
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.id !== removedItemId)
+    );
   };
 
-  const handleRemoveQuantity = (item) => {
-    if (item.quantity > 0) {
-      item.quantity -= 1;
-      updateCartItem(item);
+  const sendUpdate = useCallback(
+    async (item, endpoint) => {
+      if (isConnected) {
+        try {
+          await stompClient.send(endpoint, {}, JSON.stringify(item));
+        } catch (err) {
+          console.error("Failed to send WebSocket message:", err);
+          setError("Failed to send WebSocket message");
+        }
+      } else {
+        console.error("WebSocket connection is not established yet");
+        setError("WebSocket connection is not established yet");
+      }
+    },
+    [isConnected]
+  );
+
+  const handleAddQuantity = async (item) => {
+    const updatedItem = { ...item, quantity: item.quantity + 1 };
+    await sendUpdate(updatedItem, "/app/cart/add");
+  };
+
+  const handleRemoveQuantity = async (item) => {
+    if (item.quantity > 1) {
+      const updatedItem = { ...item, quantity: item.quantity - 1 };
+      await sendUpdate(updatedItem, "/app/cart/add");
+    } else {
+      try {
+        // Delete item from backend
+        await axios.delete(`${BASE_URL}/cart/${item.id}`);
+
+        // Notify WebSocket server to ensure consistency
+        await sendUpdate({ id: item.id, removed: true }, "/app/cart/remove");
+
+        // Remove item from UI after successful deletion
+        setCartItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+      } catch (err) {
+        console.error("Failed to delete item from cart:", err);
+        setError("Failed to delete item from cart");
+      }
     }
   };
 
   return (
     <div>
       <h1>Shopping Cart</h1>
+      {error && <p className="text-danger">{error}</p>}
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {cartItems.length > 0 ? (
           cartItems.map((item) => (
