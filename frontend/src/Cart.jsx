@@ -1,6 +1,4 @@
 /* eslint-disable react/prop-types */
-// src/Cart.jsx
-
 import { useState, useEffect } from "react";
 import SockJS from "sockjs-client";
 import { over } from "stompjs";
@@ -22,7 +20,7 @@ const Cart = ({ isOpen, onRequestClose }) => {
         });
       }
     };
-  }, [isConnected]);
+  }, []);
 
   const connectWebSocket = () => {
     const socket = new SockJS("http://localhost:8080/ws");
@@ -33,8 +31,14 @@ const Cart = ({ isOpen, onRequestClose }) => {
   const onConnected = () => {
     console.log("Connected to WebSocket");
     setIsConnected(true);
+
+    // Subscribe to the /topic/cart channel to receive updates
     stompClient.subscribe("/topic/cart", onMessageReceived);
-    stompClient.send("/app/cart/fetch", {}, JSON.stringify({}));
+
+    // Fetch cart items by sending a message to /cart/fetch
+    setTimeout(() => {
+      stompClient.send("/app/cart/fetch", {}, JSON.stringify({}));
+    }, 100);
   };
 
   const onError = (error) => {
@@ -51,12 +55,17 @@ const Cart = ({ isOpen, onRequestClose }) => {
         const itemIndex = prevItems.findIndex(
           (item) => item.id === messageData.id
         );
-        if (itemIndex !== -1) {
-          const updatedItems = [...prevItems];
-          updatedItems[itemIndex] = messageData;
-          return updatedItems;
+        if (messageData.quantity > 0) {
+          if (itemIndex !== -1) {
+            const updatedItems = [...prevItems];
+            updatedItems[itemIndex] = messageData;
+            return updatedItems;
+          } else {
+            return [...prevItems, messageData];
+          }
         } else {
-          return [...prevItems, messageData];
+          // Remove the item if quantity is 0
+          return prevItems.filter((item) => item.id !== messageData.id);
         }
       });
     }
@@ -76,12 +85,11 @@ const Cart = ({ isOpen, onRequestClose }) => {
   };
 
   const handleRemoveQuantity = (item) => {
-    if (item.quantity > 1) {
-      const updatedItem = { ...item, quantity: item.quantity - 1 };
-      sendUpdate(updatedItem, "/app/cart/add");
-    } else {
-      sendUpdate(item, "/app/cart/remove");
-    }
+    const updatedItem = { ...item, quantity: item.quantity - 1 };
+    sendUpdate(
+      updatedItem,
+      updatedItem.quantity > 0 ? "/app/cart/add" : "/app/cart/remove"
+    );
   };
 
   return (

@@ -22,7 +22,7 @@ public class CartService {
         cartItemRepository.deleteById(id);
     }
 
-    public CartItem removeCartItem(CartItem cartItem) {
+    public boolean removeCartItem(CartItem cartItem) {
         Optional<CartItem> existingItem = cartItemRepository.findById(cartItem.getId());
 
         if (existingItem.isPresent()) {
@@ -30,10 +30,11 @@ public class CartService {
 
             if (item.getQuantity() > 1) {
                 item.setQuantity(item.getQuantity() - 1);
-                return cartItemRepository.save(item); // Save the updated item
+                cartItemRepository.save(item); // Save the updated item
+                return false; // Indicate that the item was not removed, only updated
             } else {
                 cartItemRepository.delete(item);
-                return item; // Return the item that was removed
+                return true; // Indicate that the item was removed
             }
         } else {
             throw new RuntimeException("Cart item not found.");

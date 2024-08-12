@@ -34,12 +34,14 @@ public class CartWebSocketController {
 
     @MessageMapping("/cart/remove")
     public void removeCartItem(CartItem cartItem) {
-        CartItem removedItem = cartService.removeCartItem(cartItem);
-        if (removedItem == null) {
-            // If the item was removed, notify the clients to delete the item
-            messagingTemplate.convertAndSend("/topic/cart/remove", cartItem.getId());
-        } else {
-            sendCartItemToWebSocket(removedItem);
+        // Remove the cart item from the service layer (and thus from the cart
+        // collection)
+        boolean isRemoved = cartService.removeCartItem(cartItem);
+
+        // If the item was successfully removed, send an update to all subscribed
+        // clients
+        if (isRemoved) {
+            messagingTemplate.convertAndSend("/topic/cart", cartItem);
         }
     }
 
