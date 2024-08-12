@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, Button, Container, Row, Col } from "react-bootstrap";
@@ -75,7 +76,7 @@ const ItemList = () => {
       <h2 className="text-center">Item List</h2>
       {error && <p className="text-danger">{error}</p>}
 
-      <div style={{ marginBottom: "20px" }}>
+      {/* <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
           value={newItem.description}
@@ -95,7 +96,7 @@ const ItemList = () => {
         <Button variant="primary" onClick={handleAddItem}>
           Add Item
         </Button>
-      </div>
+      </div> */}
 
       <Row>
         {items.map((item) => (
@@ -109,13 +110,13 @@ const ItemList = () => {
               <Card.Body>
                 <Card.Title>{item.description}</Card.Title>
                 <Card.Text>Price: ${item.price}</Card.Text>
-                <Button
+                {/* <Button
                   variant="danger"
                   onClick={() => handleDeleteItem(item.id)}
                   style={{ marginRight: "10px" }}
                 >
                   Delete
-                </Button>
+                </Button> */}
                 <Button
                   variant="primary"
                   onClick={() => handleSelectItem(item.id)}
