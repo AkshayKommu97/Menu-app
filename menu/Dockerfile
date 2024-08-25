@@ -5,10 +5,10 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the Spring Boot JAR file into the container
-COPY target/menu-0.0.1-SNAPSHOT.jar /app/menu-0.0.1-SNAPSHOT.jar
+COPY target/menu-0.0.1-SNAPSHOT.jar /menu/menu-0.0.1-SNAPSHOT.jar
 
 # Expose the port on which the application will run
 EXPOSE 8080
 
 # Run the Spring Boot application
-ENTRYPOINT ["java", "-jar", "/app/menu-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/menu/menu-0.0.1-SNAPSHOT.jar"]
