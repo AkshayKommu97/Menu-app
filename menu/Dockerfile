@@ -9,7 +9,7 @@ COPY pom.xml /app/
 RUN mvn dependency:go-offline
 
 # Copy the rest of the application source code
-COPY src /app/src
+COPY . .
 
 # Package the application into a JAR file
 RUN mvn clean package -DskipTests
