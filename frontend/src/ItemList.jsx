@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 // Define the base URL for the API
-const BASE_URL = "https://menu-app-8zql.onrender.com/";
+const BASE_URL = "https://menu-app-8zql.onrender.com/api/v1";
 
 const ItemList = () => {
   const [items, setItems] = useState([]);
