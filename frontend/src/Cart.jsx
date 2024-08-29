@@ -23,7 +23,7 @@ const Cart = ({ isOpen, onRequestClose }) => {
   }, []);
 
   const connectWebSocket = () => {
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS("https://menu-app-8zql.onrender.com/ws");
     stompClient = over(socket);
     stompClient.connect({}, onConnected, onError);
   };
