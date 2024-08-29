@@ -26,10 +26,6 @@ COPY --from=build /app/target/menu-0.0.1-SNAPSHOT.jar /app/menu-0.0.1-SNAPSHOT.j
 # Install SSL certificates
 RUN apt-get update && apt-get install -y ca-certificates-java && apt-get clean
 
-# Import MongoDB Atlas certificates (if needed)
-# RUN wget -O /usr/local/share/ca-certificates/mongodb.crt https://www.mongodb.com/ca-certificates.crt
-# RUN update-ca-certificates
-
 # Expose the port the application runs on
 EXPOSE 8080
 
