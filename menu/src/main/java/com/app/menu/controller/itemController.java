@@ -29,6 +29,11 @@ public class itemController {
     @Autowired
     private CartService cartService;
 
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello";
+    }
+
     @GetMapping("/items")
     public ResponseEntity<List<Item>> getItems() {
         return ResponseEntity.ok(itemService.getAllItems());
