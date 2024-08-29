@@ -5,7 +5,7 @@ FROM maven:3.8.8-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # Copy the pom.xml file and download dependencies
-COPY pom.xml /app/
+COPY . .
 RUN mvn dependency:go-offline
 
 # Copy the rest of the application source code
