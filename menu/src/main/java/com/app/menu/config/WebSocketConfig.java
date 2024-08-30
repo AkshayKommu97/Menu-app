@@ -21,7 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @SuppressWarnings("null")
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOrigins("*")
+        registry.addEndpoint("/ws").setAllowedOrigins("https://menu-app-frontend-2vqt.onrender.com")
                 .withSockJS();
     }
 }

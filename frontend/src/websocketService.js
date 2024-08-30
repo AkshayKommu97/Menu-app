@@ -2,7 +2,7 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
-const WEBSOCKET_URL = "https://menu-app-8zql.onrender.com/ws";
+const WEBSOCKET_URL = "wss://menu-app-8zql.onrender.com/ws";
 
 const client = new Client({
   brokerURL: WEBSOCKET_URL,
