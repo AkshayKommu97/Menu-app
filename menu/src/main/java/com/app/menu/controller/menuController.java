@@ -24,7 +24,7 @@ public class menuController {
     UserRepository userRepository;
 
     @GetMapping("/get-user/{id}")
-    @CrossOrigin(origins = "http://localhost:5174")
+    // @CrossOrigin(origins = "http://localhost:5174")
     public ResponseEntity<?> getUser(@PathVariable String id) {
         Optional<User> byId = userRepository.findById(id);
         if (byId.isPresent()) {

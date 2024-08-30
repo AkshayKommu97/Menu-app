@@ -11,8 +11,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*") // Allow requests from the
-                                     // React app
+                .allowedOrigins("https://menu-app-frontend-2vqt.onrender.com")// Allow requests from the
+                // React app
                 .allowedMethods("*")
                 .allowCredentials(true);
     }

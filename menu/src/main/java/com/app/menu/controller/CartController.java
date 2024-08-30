@@ -11,7 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Controller
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://menu-app-frontend-2vqt.onrender.com")
 public class CartController {
 
     @Autowired
