@@ -14,4 +14,7 @@ export default defineConfig({
   define: {
     global: "globalThis", // Define the global object
   },
+  build: {
+    outDir: "build", // Specify the output directory
+  },
 });
